@@ -67,8 +67,7 @@
         #admin-section { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; z-index: 1000; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 90%; }
         #admin-section.active { display: block; }
         .footer-box { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; font-size: 12px; color: #6b7280; margin-top: 20px; }
-        .footer-box a { color: #667eea; text-decoration: none; display: block; margin: 10px 0; }
-        .app-download-btn { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+        .footer-box a { color: #667eea; text-decoration: none; display: block; margin: 10px 0; cursor: pointer; } /* cursor: pointer اضافه شد */
         .upload-section { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .upload-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: bold; width: 100%; cursor: pointer; margin-bottom: 10px; }
         .file-input { display: none; }
@@ -136,6 +135,11 @@
             color: #991b1b;
             font-weight: bold;
         }
+        /* Modal برای دانلود */
+        .download-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; }
+        .download-modal.active { display: flex; }
+        .modal-img { max-width: 95%; max-height: 95%; border-radius: 10px; }
+        .close-modal { position: absolute; top: 20px; right: 20px; background: #ef4444; color: white; border: none; padding: 10px; border-radius: 50%; font-size: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -157,10 +161,10 @@
             <button class="day-btn" onclick="goToCards('friday')">جمعه</button>
         </div>
         <button class="admin-btn" onclick="openAdminLogin()">پنل مخصوص مدیریت</button>
-        <button class="btn-success app-download-btn">دانلود اپلیکیشن توتو98</button>
+        <!-- دکمه دانلود اپلیکیشن حذف شد -->
         <div class="footer-box">
-            کلیه حقوق متعلق به کانال تلگرامی <a href="https://t.me/toto98playgame">@toto98playgame</a><br>
-            📞 پشتیبانی: <a href="https://t.me/toto968play">@toto968play</a>
+            کلیه حقوق متعلق به کانال تلگرامی <a href="#" onclick="openTelegramLink('https://t.me/toto98playgame')">@toto98playgame</a><br>
+            📞 پشتیبانی: <a href="#" onclick="openTelegramLink('https://t.me/toto968play')">@toto968play</a>
         </div>
     </div>
     <div id="page-cards" class="page">
@@ -297,6 +301,15 @@
         <button class="back-btn" onclick="closeAdminPanel()">← خروج</button>
     </div>
 </div>
+<!-- Modal برای عکس -->
+<div id="download-modal" class="download-modal">
+    <button class="close-modal" onclick="closeDownloadModal()">×</button>
+    <img id="modal-img" class="modal-img">
+    <div style="position: absolute; bottom: 20px; text-align: center; color: white; width: 100%;">
+        <p>عکس آماده! اسکرین‌شات بگیرید (Volume Down + Power) و به مدیر بفرستید.</p>
+        <button onclick="downloadFallback()" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 10px; margin: 5px;">تلاش مجدد دانلود</button>
+    </div>
+</div>
 <script>
 let currentDay = '', currentCard = null, selections = [];
 let uploadedImage = null;
@@ -381,7 +394,7 @@ const FIXED_CARDS = {
     ]
 };
 
-// === توابع اصلی (بدون تغییر) ===
+// توابع اصلی (همون کد قبلی – بدون تغییر)
 function getCardInstanceKey(day, cardName) { 
     return `card_instance_${day}_${cardName}`; 
 }
@@ -681,7 +694,7 @@ function sendToTelegram() {
     setTimeout(() => {
         captureCard()
             .then(imageData => {
-                // فیکس دانلود برای WebView موبایل
+                // فیکس دانلود
                 const link = document.createElement('a');
                 fetch(imageData)
                     .then(res => res.blob())
@@ -692,29 +705,32 @@ function sendToTelegram() {
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
-                        URL.revokeObjectURL(url);  // پاک کردن حافظه
+                        URL.revokeObjectURL(url);
+                        setTimeout(() => {
+                            if (confirm('دانلود خودکار کار نکرد؟ عکس رو در فول‌اسکرین ببین و اسکرین‌شات بگیر.')) {
+                                showDownloadModal(imageData);
+                            }
+                        }, 500);
                     })
                     .catch(err => {
-                        alert('خطا در دانلود: ' + err.message);
+                        alert('خطا در دانلود: ' + err.message + '. از modal استفاده کنید.');
+                        showDownloadModal(imageData);
                     });
+                // فیکس تلگرام
                 setTimeout(() => {
-                    // فیکس برای WebView: سعی کن با location باز کن (بهتر برای tg://)
                     try {
-                        window.location.href = 'https://t.me/toto968play';
-                    } catch (e) {
-                        // fallback: باز کردن در مرورگر خارجی
                         window.open('https://t.me/toto968play', '_system');
+                    } catch (e) {
+                        window.location.href = 'https://t.me/toto968play';
                     }
-                    // ✅ پاک‌کردن رمز مشتری و علامت‌های روی کارت
+                    // پاک‌کردن
                     document.getElementById('customer-code-input').value = '';
-                    // ریست selections برای جلوگیری از کشیدن علامت‌ها در آینده
                     selections = Array(currentCard.games).fill(0).map(() => new Set());
-                    // پاک کردن canvas برای خام کردن کارت
                     const canvas = document.getElementById('marks-canvas');
                     const ctx = canvas.getContext('2d');
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     document.getElementById('loading').classList.remove('show');
-                }, 1000);
+                }, 1500);
             })
             .catch(() => {
                 document.getElementById('loading').classList.remove('show');
@@ -723,7 +739,36 @@ function sendToTelegram() {
     }, 500);
 }
 
-// === سایر توابع مدیریت (بدون تغییر) ===
+// تابع جدید برای لینک‌های footer
+function openTelegramLink(url) {
+    try {
+        window.open(url, '_system');
+    } catch (e) {
+        window.location.href = url;
+    }
+}
+
+// توابع modal
+function showDownloadModal(imageData) {
+    const modal = document.getElementById('download-modal');
+    const img = document.getElementById('modal-img');
+    img.src = imageData;
+    modal.classList.add('active');
+}
+
+function closeDownloadModal() {
+    document.getElementById('download-modal').classList.remove('active');
+}
+
+function downloadFallback() {
+    const link = document.createElement('a');
+    link.href = document.getElementById('modal-img').src;
+    link.download = `toto98_card_${Date.now()}.png`;
+    link.click();
+    closeDownloadModal();
+}
+
+// بقیه توابع (admin, upload, updateTime, etc.) – همون کد قبلی
 function openAdminLogin() {
     document.getElementById('admin-section').classList.add('active');
 }
@@ -1003,4 +1048,4 @@ updateTime();
 autoDeleteOldCards();
 </script>
 </body>
-</html>
+                </html>
