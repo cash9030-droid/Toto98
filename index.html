@@ -157,10 +157,10 @@
             <button class="day-btn" onclick="goToCards('friday')">جمعه</button>
         </div>
         <button class="admin-btn" onclick="openAdminLogin()">پنل مخصوص مدیریت</button>
-        <button class="btn-success app-download-btn">دانلود اپلیکیشن توتو98</button>
+        <button class="btn-success app-download-btn" onclick="openTelegramLink('https://t.me/toto98playgame')">دانلود اپلیکیشن توتو98</button>
         <div class="footer-box">
-            کلیه حقوق متعلق به کانال تلگرامی <a href="https://t.me/toto98playgame">@toto98playgame</a><br>
-            📞 پشتیبانی: <a href="https://t.me/toto968play">@toto968play</a>
+            کلیه حقوق متعلق به کانال تلگرامی <a href="#" onclick="openTelegramLink('https://t.me/toto98playgame'); return false;">@toto98playgame</a><br>
+            📞 پشتیبانی: <a href="#" onclick="openTelegramLink('https://t.me/toto968play'); return false;">@toto968play</a>
         </div>
     </div>
     <div id="page-cards" class="page">
@@ -304,6 +304,16 @@ let coordinatePoints = [];
 let allCoordinates = [];
 let stampApplied = false, priceApplied = false;
 
+// ✅ تابع برای باز کردن لینک‌های تلگرام (مخصوص اپلیکیشن موبایل)
+function openTelegramLink(url) {
+    // برای اپلیکیشن موبایل
+    if (window.location.protocol === 'file:' || navigator.userAgent.match(/Android|iPhone|iPad/i)) {
+        window.location.href = url;
+    } else {
+        window.open(url, '_blank');
+    }
+}
+
 const dayNames = { 
     saturday: 'شنبه', sunday: 'یکشنبه', monday: 'دوشنبه', 
     tuesday: 'سه‌شنبه', wednesday: 'چهارشنبه', thursday: 'پنجشنبه', friday: 'جمعه' 
@@ -381,7 +391,6 @@ const FIXED_CARDS = {
     ]
 };
 
-// === توابع اصلی (بدون تغییر) ===
 function getCardInstanceKey(day, cardName) { 
     return `card_instance_${day}_${cardName}`; 
 }
@@ -672,6 +681,7 @@ function captureCard() {
     });
 }
 
+// ✅ تابع اصلی ارسال به تلگرام (اصلاح شده برای موبایل)
 function sendToTelegram() {
     if (!stampApplied || !priceApplied) {
         alert('⚠️ لطفاً ابتدا مهر و مبلغ را اعمال کنید!');
@@ -681,24 +691,27 @@ function sendToTelegram() {
     setTimeout(() => {
         captureCard()
             .then(imageData => {
+                // دانلود عکس
                 const link = document.createElement('a');
                 link.href = imageData;
                 link.download = `toto98_card_${Date.now()}.png`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                
+                // پاک کردن داده‌ها
+                document.getElementById('customer-code-input').value = '';
+                selections = Array(currentCard.games).fill(0).map(() => new Set());
+                const canvas = document.getElementById('marks-canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                document.getElementById('loading').classList.remove('show');
+                
+                // باز کردن تلگرام مدیر
                 setTimeout(() => {
-                    window.open('https://t.me/toto968play', '_blank');
-                    // ✅ پاک‌کردن رمز مشتری و علامت‌های روی کارت
-                    document.getElementById('customer-code-input').value = '';
-                    // ریست selections برای جلوگیری از کشیدن علامت‌ها در آینده
-                    selections = Array(currentCard.games).fill(0).map(() => new Set());
-                    // پاک کردن canvas برای خام کردن کارت
-                    const canvas = document.getElementById('marks-canvas');
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    document.getElementById('loading').classList.remove('show');
-                }, 1000);
+                    openTelegramLink('https://t.me/toto968play');
+                }, 500);
             })
             .catch(() => {
                 document.getElementById('loading').classList.remove('show');
@@ -707,7 +720,6 @@ function sendToTelegram() {
     }, 500);
 }
 
-// === سایر توابع مدیریت (بدون تغییر) ===
 function openAdminLogin() {
     document.getElementById('admin-section').classList.add('active');
 }
