@@ -6,6 +6,13 @@
     <title>پیش‌بینی مسابقات</title>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="توتو۹۸">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Tahoma, Arial, sans-serif; background: #f5f5f5; }
@@ -33,7 +40,7 @@
         .match-row:last-child { border-bottom: none; }
         .match-num { width: 30px; text-align: center; font-weight: bold; color: #6b7280; font-size: 14px; }
         .options-group { display: flex; gap: 6px; }
-        .circle-option { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #d1d5db; background: white; cursor: pointer; transition: all 0.3s; position: relative; font-size: 11px; display: flex; align-items: center; justify-content: center; color: #6b7280; }
+        .circle-option { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #d1d5db; background: white; cursor: pointer; transition: all 0.3s; font-size: 11px; display: flex; align-items: center; justify-content: center; color: #6b7280; }
         .circle-option:active { transform: scale(0.9); }
         .circle-option.selected { border-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 0 8px rgba(102, 126, 234, 0.5); }
         .stats-box { background: #dbeafe; border: 2px solid #93c5fd; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
@@ -67,7 +74,7 @@
         #admin-section { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; z-index: 1000; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 90%; }
         #admin-section.active { display: block; }
         .footer-box { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; font-size: 12px; color: #6b7280; margin-top: 20px; }
-        .footer-box a { color: #667eea; text-decoration: none; display: block; margin: 10px 0; cursor: pointer; } /* cursor: pointer اضافه شد */
+        .footer-box a { color: #667eea; text-decoration: none; display: block; margin: 10px 0; cursor: pointer; }
         .upload-section { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .upload-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: bold; width: 100%; cursor: pointer; margin-bottom: 10px; }
         .file-input { display: none; }
@@ -83,59 +90,13 @@
         .step-indicator { background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 10px; margin-bottom: 10px; text-align: center; font-size: 14px; font-weight: bold; color: #92400e; }
         .card-final-preview { position: relative; background: white; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
         .card-final-image { width: 100%; display: block; }
-        .card-stamp { 
-            position: absolute; top: 20px; left: 20px; 
-            background: rgba(0, 0, 0, 0.85); 
-            padding: 14px 24px; 
-            border-radius: 10px; 
-            font-family: 'Merriweather', serif; 
-            text-align: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-        }
-        .card-stamp-title { 
-            color: #ef4444; 
-            font-size: 26px; 
-            font-weight: bold; 
-            margin-bottom: 0; 
-        }
-        .card-price { 
-            position: absolute; bottom: 20px; right: 20px; 
-            background: rgba(0, 0, 0, 0.85); 
-            padding: 12px 20px; 
-            border-radius: 10px; 
-            font-family: 'Merriweather', serif; 
-            text-align: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-        }
-        .card-price-amount { 
-            color: white; 
-            font-size: 24px; 
-            font-weight: bold; 
-        }
-        .card-customer-code { 
-            position: absolute; top: 20px; right: 20px; 
-            background: rgba(0, 0, 0, 0.85); 
-            padding: 10px 18px; 
-            border-radius: 8px; 
-            font-family: 'Merriweather', Tahoma, sans-serif; 
-            font-size: 18px; 
-            color: white; 
-            text-align: left; 
-            direction: ltr; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
-        }
-        .payment-instruction {
-            background: #fee2e2;
-            border: 2px solid #ef4444;
-            border-radius: 10px;
-            padding: 12px;
-            margin: 15px 0;
-            text-align: center;
-            font-size: 14px;
-            color: #991b1b;
-            font-weight: bold;
-        }
-        /* Modal برای دانلود */
+        .card-stamp { position: absolute; top: 20px; left: 20px; background: rgba(0, 0, 0, 0.85); padding: 14px 24px; border-radius: 10px; font-family: 'Merriweather', serif; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .card-stamp-title { color: #ef4444; font-size: 26px; font-weight: bold; margin-bottom: 0; }
+        .card-price { position: absolute; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.85); padding: 12px 20px; border-radius: 10px; font-family: 'Merriweather', serif; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .card-price-amount { color: white; font-size: 24px; font-weight: bold; }
+        .card-customer-code { position: absolute; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.85); padding: 10px 18px; border-radius: 8px; font-family: 'Merriweather', Tahoma, sans-serif; font-size: 18px; color: white; text-align: left; direction: ltr; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .payment-instruction { background: #fee2e2; border: 2px solid #ef4444; border-radius: 10px; padding: 12px; margin: 15px 0; text-align: center; font-size: 14px; color: #991b1b; font-weight: bold; }
+        /* Modal for download */
         .download-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; }
         .download-modal.active { display: flex; }
         .modal-img { max-width: 95%; max-height: 95%; border-radius: 10px; }
@@ -161,7 +122,6 @@
             <button class="day-btn" onclick="goToCards('friday')">جمعه</button>
         </div>
         <button class="admin-btn" onclick="openAdminLogin()">پنل مخصوص مدیریت</button>
-        <!-- دکمه دانلود اپلیکیشن حذف شد -->
         <div class="footer-box">
             کلیه حقوق متعلق به کانال تلگرامی <a href="#" onclick="openTelegramLink('https://t.me/toto98playgame')">@toto98playgame</a><br>
             📞 پشتیبانی: <a href="#" onclick="openTelegramLink('https://t.me/toto968play')">@toto968play</a>
@@ -301,7 +261,7 @@
         <button class="back-btn" onclick="closeAdminPanel()">← خروج</button>
     </div>
 </div>
-<!-- Modal برای عکس -->
+<!-- Modal for download -->
 <div id="download-modal" class="download-modal">
     <button class="close-modal" onclick="closeDownloadModal()">×</button>
     <img id="modal-img" class="modal-img">
@@ -394,7 +354,13 @@ const FIXED_CARDS = {
     ]
 };
 
-// توابع اصلی (همون کد قبلی – بدون تغییر)
+let currentDay = '', currentCard = null, selections = [];
+let uploadedImage = null;
+let coordinatePoints = [];
+let allCoordinates = [];
+let stampApplied = false, priceApplied = false;
+
+// توابع اصلی
 function getCardInstanceKey(day, cardName) { 
     return `card_instance_${day}_${cardName}`; 
 }
@@ -739,7 +705,6 @@ function sendToTelegram() {
     }, 500);
 }
 
-// تابع جدید برای لینک‌های footer
 function openTelegramLink(url) {
     try {
         window.open(url, '_system');
@@ -748,7 +713,6 @@ function openTelegramLink(url) {
     }
 }
 
-// توابع modal
 function showDownloadModal(imageData) {
     const modal = document.getElementById('download-modal');
     const img = document.getElementById('modal-img');
@@ -768,7 +732,7 @@ function downloadFallback() {
     closeDownloadModal();
 }
 
-// بقیه توابع (admin, upload, updateTime, etc.) – همون کد قبلی
+// بقیه توابع (admin, upload, etc.) – همون کد قبلی
 function openAdminLogin() {
     document.getElementById('admin-section').classList.add('active');
 }
@@ -1046,6 +1010,15 @@ function updateTime() {
 setInterval(updateTime, 1000);
 updateTime();
 autoDeleteOldCards();
+
+// PWA Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(function(registration) {
+    console.log('SW registered: ', registration);
+  }).catch(function(registrationError) {
+    console.log('SW registration failed: ', registrationError);
+  });
+}
 </script>
 </body>
-                </html>
+                                                              </html>
