@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پیش‌بینی مسابقات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Tahoma, Arial, sans-serif; background: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .header h1 { font-size: 20px; margin-bottom: 5px; }
+        .header p { font-size: 18px; opacity: 0.9; margin-top: 5px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 15px; }
+        .welcome-message { text-align: center; font-size: 14px; color: #374151; margin: 10px 0; }
+        .back-btn { background: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .page { display: none; }
+        .page.active { display: block; }
+        .days-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .day-btn { background: white; border: 2px solid #667eea; padding: 20px; border-radius: 15px; font-size: 16px; font-weight: bold; color: #667eea; cursor: pointer; transition: all 0.3s; }
+        .day-btn.current-day { background: #d1fae5; border-color: #10b981; color: #047857; }
+        .day-btn:active { transform: scale(0.95); }
+        .card-item { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.3s; margin-bottom: 15px; }
+        .card-item:active { transform: scale(0.98); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .card-name { font-size: 16px; font-weight: bold; color: #667eea; }
+        .card-type { font-size: 13px; font-weight: bold; color: #10b981; }
+        .card-thumbnail { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
+        .card-image-full { width: 100%; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .match-selector { background: white; border-radius: 10px; padding: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .match-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+        .match-row:last-child { border-bottom: none; }
+        .match-num { width: 30px; text-align: center; font-weight: bold; color: #6b7280; font-size: 14px; }
+        .options-group { display: flex; gap: 6px; }
+        .circle-option { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #d1d5db; background: white; cursor: pointer; transition: all 0.3s; position: relative; font-size: 11px; display: flex; align-items: center; justify-content: center; color: #6b7280; }
+        .circle-option:active { transform: scale(0.9); }
+        .circle-option.selected { border-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 0 8px rgba(102, 126, 234, 0.5); }
+        .stats-box { background: #dbeafe; border: 2px solid #93c5fd; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .stats-title { font-size: 13px; font-weight: bold; color: #1e40af; margin-bottom: 10px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
+        .stat-num { font-size: 24px; font-weight: bold; color: #1e3a8a; }
+        .stat-label { font-size: 11px; color: #6b7280; }
+        .price-box { background: #fef3c7; border: 2px solid #fbbf24; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .price-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+        .price-row.total { padding-top: 8px; border-top: 2px solid #fbbf24; margin-top: 8px; }
+        .price-label { color: #92400e; }
+        .price-value { font-weight: bold; }
+        .price-final { font-size: 18px; color: #dc2626; font-weight: bold; }
+        .alert-box { border-radius: 10px; padding: 12px; margin-bottom: 15px; text-align: center; font-size: 12px; font-weight: bold; }
+        .alert-orange { background: #fed7aa; border: 2px solid #fb923c; color: #9a3412; }
+        .alert-red { background: #fecaca; border: 2px solid #ef4444; color: #991b1b; }
+        .alert-blue { background: #dbeafe; border: 2px solid #3b82f6; color: #1e40af; }
+        .alert-green { background: #d1fae5; border: 2px solid #10b981; color: #047857; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 15px; padding: 18px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s; margin-bottom: 10px; }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 15px; padding: 18px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transition: all 0.3s; margin-bottom: 10px; }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 15px; padding: 18px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); transition: all 0.3s; margin-bottom: 10px; }
+        .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 15px; padding: 18px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: all 0.3s; margin-bottom: 10px; }
+        .admin-btn { background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%); color: white; border: none; border-radius: 15px; padding: 15px; font-size: 14px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); transition: all 0.3s; margin-top: 15px; }
+        .delete-btn { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; margin-left: 10px; }
+        .hidden { display: none !important; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        #loading.show { display: flex; }
+        .spinner { color: white; text-align: center; }
+        .spinner-icon { font-size: 48px; animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        #admin-section { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; z-index: 1000; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 90%; }
+        #admin-section.active { display: block; }
+        .footer-box { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; font-size: 12px; color: #6b7280; margin-top: 20px; }
+        .footer-box a { color: #667eea; text-decoration: none; display: block; margin: 10px 0; }
+        .app-download-btn { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+        .upload-section { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .upload-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: bold; width: 100%; cursor: pointer; margin-bottom: 10px; }
+        .file-input { display: none; }
+        .preview-container { position: relative; margin: 15px 0; border: 2px dashed #667eea; border-radius: 10px; overflow: hidden; }
+        .preview-image { width: 100%; display: block; }
+        .coordinate-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
+        .coordinate-marker { position: absolute; width: 14px; height: 14px; background: red; border: 2px solid white; border-radius: 50%; transform: translate(-50%, -50%); font-size: 9px; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .coordinate-marker:hover { background: #dc2626; transform: translate(-50%, -50%) scale(1.2); }
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #374151; font-weight: bold; }
+        .input-group input, .input-group select { width: 100%; padding: 8px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+        .info-box { background: #dbeafe; border: 2px solid #3b82f6; border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 13px; color: #1e40af; }
+        .step-indicator { background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 10px; margin-bottom: 10px; text-align: center; font-size: 14px; font-weight: bold; color: #92400e; }
+        .card-final-preview { position: relative; background: white; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+        .card-final-image { width: 100%; display: block; }
+        .card-stamp { 
+            position: absolute; top: 20px; left: 20px; 
+            background: rgba(0, 0, 0, 0.85); 
+            padding: 14px 24px; 
+            border-radius: 10px; 
+            font-family: 'Merriweather', serif; 
+            text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+        }
+        .card-stamp-title { 
+            color: #ef4444; 
+            font-size: 26px; 
+            font-weight: bold; 
+            margin-bottom: 0; 
+        }
+        .card-price { 
+            position: absolute; bottom: 20px; right: 20px; 
+            background: rgba(0, 0, 0, 0.85); 
+            padding: 12px 20px; 
+            border-radius: 10px; 
+            font-family: 'Merriweather', serif; 
+            text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+        }
+        .card-price-amount { 
+            color: white; 
+            font-size: 24px; 
+            font-weight: bold; 
+        }
+        .card-customer-code { 
+            position: absolute; top: 20px; right: 20px; 
+            background: rgba(0, 0, 0, 0.85); 
+            padding: 10px 18px; 
+            border-radius: 8px; 
+            font-family: 'Merriweather', Tahoma, sans-serif; 
+            font-size: 18px; 
+            color: white; 
+            text-align: left; 
+            direction: ltr; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+        }
+        .payment-instruction {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 14px;
+            color: #991b1b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div id="loading"><div class="spinner"><div class="spinner-icon">⏳</div><p>در حال آماده‌سازی...</p></div></div>
+<div class="header">
+    <h1 id="header-title">⚽ پیش‌بینی زنده بازی‌های فوتبال ⚽</h1>
+    <p id="header-time"></p>
+</div>
+<div class="container">
+    <div class="welcome-message">سلام دوست عزیزم، خوش اومدی🌻 لطفا روزی رو برای پیش‌بینی دلخواهت انتخاب کن❣️</div>
+    <div id="page-days" class="page active">
+        <div class="days-grid">
+            <button class="day-btn" onclick="goToCards('saturday')">شنبه</button>
+            <button class="day-btn" onclick="goToCards('sunday')">یکشنبه</button>
+            <button class="day-btn" onclick="goToCards('monday')">دوشنبه</button>
+            <button class="day-btn" onclick="goToCards('tuesday')">سه‌شنبه</button>
+            <button class="day-btn" onclick="goToCards('wednesday')">چهارشنبه</button>
+            <button class="day-btn" onclick="goToCards('thursday')">پنجشنبه</button>
+            <button class="day-btn" onclick="goToCards('friday')">جمعه</button>
+        </div>
+        <button class="admin-btn" onclick="openAdminLogin()">پنل مخصوص مدیریت</button>
+        <button class="btn-success app-download-btn">دانلود اپلیکیشن توتو98</button>
+        <div class="footer-box">
+            کلیه حقوق متعلق به کانال تلگرامی <a href="https://t.me/toto98playgame">@toto98playgame</a><br>
+            📞 پشتیبانی: <a href="https://t.me/toto968play">@toto968play</a>
+        </div>
+    </div>
+    <div id="page-cards" class="page">
+        <button class="back-btn" onclick="goToDays()">← بازگشت</button>
+        <div id="cards-container"></div>
+    </div>
+    <div id="page-matches" class="page">
+        <button class="back-btn" onclick="goBackToCards()">← بازگشت</button>
+        <div class="alert-box alert-blue">
+            📸 لطفاً نظرات خود را در پایین همین کارت طبق شماره های سمت راست وارد کنید
+        </div>
+        <img id="match-card-image" class="card-image-full">
+        <div id="matches-container"></div>
+        <div class="stats-box">
+            <div class="stats-title">📊 آمار انتخاب‌ها:</div>
+            <div class="stats-grid">
+                <div><div class="stat-num" id="s3">0</div><div class="stat-label">سه‌نظر</div></div>
+                <div><div class="stat-num" id="s2">0</div><div class="stat-label">دو‌نظر</div></div>
+                <div><div class="stat-num" id="s1">0</div><div class="stat-label">تک‌نظر</div></div>
+            </div>
+        </div>
+        <div class="price-box">
+            <div class="price-row"><span class="price-label">💰 قبل از تخفیف:</span><span class="price-value" id="pb">0</span></div>
+            <div class="price-row"><span class="price-label">🎁 تخفیف:</span><span class="price-value" style="color: #dc2626;" id="pd">0</span></div>
+            <div class="price-row total"><span class="price-label" style="font-weight: bold;">💵 مبلغ نهایی:</span><span class="price-value price-final" id="pf">0</span></div>
+        </div>
+        <div class="payment-instruction">
+            لطفاً مبلغ نهایی بعد از تخفیف را واریز و سپس اسکرین‌شات را برای مدیر ارسال کنید❣️
+        </div>
+        <div class="alert-box alert-orange" id="min-alert"></div>
+        <div id="err" class="alert-box alert-red hidden">❌ مبلغ کمتر از حداقل است!</div>
+        <div class="alert-box alert-green">
+            ✅ نظرات خود را کامل کردید؟ روی دکمه زیر کلیک کنید
+        </div>
+        <button class="btn-primary" onclick="showCardPreview()">🖼️ پیش‌نمایش علامت‌ها روی کارت اصلی</button>
+    </div>
+    <div id="page-preview" class="page">
+        <button class="back-btn" onclick="closePreview()">← بازگشت</button>
+        <div style="margin: 15px 0;">
+            <input type="text" id="customer-code-input" placeholder="رمز مشتری (اختیاری)" style="width: 100%; padding: 10px; border: 2px solid #3b82f6; border-radius: 10px; font-size: 14px; direction: rtl; text-align: right;">
+        </div>
+        <div class="alert-box alert-blue">
+            ⚠️ لطفاً در صورت تمایل جهت نوشتن رمز مشتری از کادر بالا اقدام‌ کرده و سپس دکمه مُهر را فشار دهید✅️
+        </div>
+        <div id="final-card-container" class="card-final-preview">
+            <img id="preview-final-image" class="card-final-image">
+            <canvas id="marks-canvas" style="position: absolute; top: 0; left: 0;"></canvas>
+            <div id="stamp-overlay" class="hidden">
+                <div class="card-stamp">
+                    <div class="card-stamp-title">توتو98</div>
+                </div>
+            </div>
+            <div id="customer-code-overlay" class="hidden"></div>
+            <div id="price-overlay" class="hidden">
+                <div class="card-price">
+                    <div class="card-price-amount" id="final-price-display">0</div>
+                </div>
+            </div>
+        </div>
+        <button id="stamp-btn" class="btn-danger" onclick="applyStamp()">🛡️ مهر توتو98</button>
+        <button id="price-btn" class="btn-warning hidden" onclick="applyPrice()">💰 مبلغ نهایی</button>
+        <div id="confirm-section" class="hidden">
+            <div class="alert-box alert-green">
+                در صورتی که نظرات مورد تأیید شما بود، روی دکمه ارسال کلیک و حتماً کارت را دانلود کنید، 🚫توجه داشته باشید نظرات کارت بعد از دانلود بصورت خودکار حذف خواهد شد🚫 سپس کارت دانلود شده را برای مدیر ارسال کنید.
+            </div>
+            <button class="btn-warning" onclick="goBackToEdit()">ویرایش مجدد نظرات</button>
+            <button class="btn-success telegram-btn" onclick="sendToTelegram()">ارسال به مدیر در تلگرام</button>
+        </div>
+    </div>
+    <div id="upload-form" class="page">
+        <button class="back-btn" onclick="closeUploadForm()">← بازگشت</button>
+        <div class="upload-section">
+            <h3 style="color: #667eea; margin-bottom: 15px; text-align: center;">آپلود کارت جدید</h3>
+            <div id="upload-step-1">
+                <div class="step-indicator">انتخاب کارت از لیست پیش‌فرض</div>
+                <div class="input-group">
+                    <label>روز هفته:</label>
+                    <select id="upload-day" onchange="updateCardList()">
+                        <option value="saturday">شنبه</option>
+                        <option value="sunday">یکشنبه</option>
+                        <option value="monday">دوشنبه</option>
+                        <option value="tuesday">سه‌شنبه</option>
+                        <option value="wednesday">چهارشنبه</option>
+                        <option value="thursday">پنجشنبه</option>
+                        <option value="friday">جمعه</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>نام کارت:</label>
+                    <select id="upload-name"></select>
+                </div>
+                <div class="info-box" id="card-info"></div>
+                <button class="upload-btn" onclick="goToStep2()">مرحله بعد: انتخاب تصویر →</button>
+            </div>
+            <div id="upload-step-2" style="display: none;">
+                <div class="step-indicator">مرحله ۲: انتخاب تصویر کارت</div>
+                <input type="file" id="card-file-input" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
+                <button class="upload-btn" onclick="document.getElementById('card-file-input').click()">📁 انتخاب تصویر از گالری</button>
+                <div id="image-preview" class="preview-container" style="display: none;">
+                    <img id="preview-img" class="preview-image">
+                </div>
+                <button id="go-to-step-3" class="upload-btn" onclick="goToStep3()" style="display: none;">مرحله بعد: تنظیم مختصات →</button>
+            </div>
+            <div id="upload-step-3" style="display: none;">
+                <div class="step-indicator" id="coordinate-instruction">لطفاً گوشه بالا-چپ اولین خانه را کلیک کنید</div>
+                <div class="info-box">
+                    📍 کلیک ۱: گوشه بالا-چپ اولین خانه<br>
+                    📍 کلیک ۲: گوشه بالا-راست اولین خانه<br>
+                    📍 کلیک ۳: گوشه پایین-چپ آخرین خانه<br>
+                    📍 کلیک ۴: گوشه پایین-راست آخرین خانه<br><br>
+                    💡 برای حذف هر نقطه، روی آن کلیک کنید
+                </div>
+                <div class="preview-container">
+                    <img id="coordinate-img" class="preview-image">
+                    <div id="coordinate-overlay" class="coordinate-overlay" onclick="handleCoordinateClick(event)"></div>
+                </div>
+                <button id="save-card-btn" class="upload-btn" onclick="saveNewCard()" style="display: none;">✅ ذخیره کارت</button>
+                <button class="upload-btn" onclick="resetCoordinates()" style="background: #ef4444;">🔄 شروع دوباره</button>
+            </div>
+        </div>
+    </div>
+    <div id="admin-section">
+        <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">ورود مدیر</h2>
+        <div id="admin-message" style="text-align: center; color: #dc2626; margin-bottom: 10px;"></div>
+        <input type="password" id="admin-code" placeholder="کد مدیر" style="width: 100%; padding: 8px; border: 2px solid #667eea; border-radius: 8px; margin-bottom: 10px;">
+        <button onclick="adminLogin()" style="width: 100%; padding: 10px; background: #10b981; color: white; border: none; border-radius: 10px; font-weight: bold;">ورود</button>
+        <button onclick="closeAdmin()" style="width: 100%; padding: 10px; background: #6b7280; color: white; border: none; border-radius: 10px; margin-top: 10px;">بستن</button>
+    </div>
+    <div id="admin-panel" class="page hidden">
+        <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">پنل مدیریت</h2>
+        <button class="upload-btn" onclick="showUploadForm()">➕ آپلود کارت جدید</button>
+        <div id="admin-days" class="days-grid"></div>
+        <div id="admin-cards"></div>
+        <button class="back-btn" onclick="closeAdminPanel()">← خروج</button>
+    </div>
+</div>
+<script>
+let currentDay = '', currentCard = null, selections = [];
+let uploadedImage = null;
+let coordinatePoints = [];
+let allCoordinates = [];
+let stampApplied = false, priceApplied = false;
+
+const dayNames = { 
+    saturday: 'شنبه', sunday: 'یکشنبه', monday: 'دوشنبه', 
+    tuesday: 'سه‌شنبه', wednesday: 'چهارشنبه', thursday: 'پنجشنبه', friday: 'جمعه' 
+};
+
+const FIXED_CARDS = {
+    saturday: [
+        { name: "مدال", games: 18, price: 5, unit: "ریال", min: 10000 },
+        { name: "کاکا", games: 18, price: 1, unit: "تومان", min: 20000 },
+        { name: "فوتبال ۱۰۰۰", games: 18, price: 5, unit: "ریال", min: 10000 },
+        { name: "کیان", games: 18, price: 1, unit: "تومان", min: 10000 },
+        { name: "رومانی", games: 17, price: 1, unit: "تومان", min: 10000 },
+        { name: "فوتبال ۱۱", games: 18, price: 1, unit: "تومان", min: 15000 },
+        { name: "تاتنهام", games: 17, price: 5, unit: "ریال", min: 10000 },
+        { name: "فوتبال ۱", games: 17, price: 1, unit: "تومان", min: 20000 },
+        { name: "ایتالیا", games: 17, price: 1, unit: "تومان", min: 15000 }
+    ],
+    sunday: [
+        { name: "شبهای فوتبالی", games: 18, price: 5, unit: "ریال", min: 15000 },
+        { name: "میلان", games: 17, price: 1, unit: "تومان", min: 20000 },
+        { name: "شاهین", games: 18, price: 1, unit: "تومان", min: 10000 },
+        { name: "آژاکس", games: 17, price: 5, unit: "ریال", min: 10000 },
+        { name: "ماتادور", games: 15, price: 100, unit: "toman", min: 100000 },
+        { name: "پاریس", games: 18, price: 5, unit: "ریال", min: 40000 },
+        { name: "آتالانتا", games: 17, price: 1, unit: "تومان", min: 15000 },
+        { name: "اسپانیا", games: 18, price: 1, unit: "تومان", min: 50000 },
+        { name: "ستارگان", games: 18, price: 5, unit: "ریال", min: 35000 }
+    ],
+    monday: [
+        { name: "فوتبال ۱۲۰", games: 18, price: 1, unit: "تومان", min: 70000 },
+        { name: "فرانسه", games: 18, price: 1, unit: "تومان", min: 10000 },
+        { name: "مدرن", games: 18, price: 5, unit: "ریال", min: 10000 },
+        { name: "سری آ", games: 18, price: 1, unit: "تومان", min: 15000 },
+        { name: "ناپولی", games: 17, price: 1, unit: "تومان", min: 15000 },
+        { name: "اروپا", games: 18, price: 5, unit: "ریال", min: 10000 }
+    ],
+    tuesday: [
+        { name: "نایک", games: 18, price: 1, unit: "تومان", min: 50000 },
+        { name: "فوتبال ۱۰۰۰ سه‌شنبه", games: 18, price: 5, unit: "ریال", min: 10000 },
+        { name: "کاکا سه‌شنبه", games: 18, price: 1, unit: "تومان", min: 20000 },
+        { name: "تاتنهام سه‌شنبه", games: 17, price: 5, unit: "ریال", min: 10000 },
+        { name: "کیان سه‌شنبه", games: 18, price: 1, unit: "تومان", min: 10000 },
+        { name: "جام در جام طلایی", games: 18, price: 5, unit: "ریال", min: 20000 },
+        { name: "مدال سه‌شنبه", games: 18, price: 5, unit: "ریال", min: 10000 },
+        { name: "ایتالیا سه‌شنبه", games: 17, price: 1, unit: "تومان", min: 15000 },
+        { name: "لالیگا", games: 18, price: 1, unit: "تومان", min: 15000 },
+        { name: "فوتبال ۱ سه‌شنبه", games: 17, price: 1, unit: "تومان", min: 20000 }
+    ],
+    wednesday: [
+        { name: "فوتبال۱۱", games: 18, price: 1, unit: "تومان", min: 15000 },
+        { name: "شبهای فوتبالی چهارشنبه", games: 18, price: 5, unit: "ریال", min: 15000 },
+        { name: "شاهین چهارشنبه", games: 18, price: 1, unit: "تومان", min: 10000 },
+        { name: "آژاکس چهارشنبه", games: 17, price: 5, unit: "ریال", min: 10000 },
+        { name: "اسپانیا چهارشنبه", games: 18, price: 1, unit: "تومان", min: 50000 },
+        { name: "آتالانتا چهارشنبه", games: 17, price: 1, unit: "تومان", min: 15000 },
+        { name: "ماتادور چهارشنبه", games: 15, price: 100, unit: "toman", min: 100000 },
+        { name: "پاریس چهارشنبه", games: 18, price: 5, unit: "ریال", min: 40000 },
+        { name: "ستارگان چهارشنبه", games: 18, price: 5, unit: "ریال", min: 35000 }
+    ],
+    thursday: [
+        { name: "فوتبال 120", games: 18, price: 1, unit: "تومان", min: 70000 },
+        { name: "سری آ پنجشنبه", games: 18, price: 1, unit: "تومان", min: 15000 },
+        { name: "مدرن پنجشنبه", games: 18, price: 5, unit: "ریال", min: 10000 },
+        { name: "فرانسه پنجشنبه", games: 18, price: 1, unit: "تومان", min: 10000 },
+        { name: "اروپا پنجشنبه", games: 18, price: 5, unit: "ریال", min: 10000 },
+        { name: "ناپولی پنجشنبه", games: 17, price: 1, unit: "تومان", min: 15000 }
+    ],
+    friday: [
+        { name: "میلان جمعه", games: 17, price: 1, unit: "تومان", min: 20000 },
+        { name: "نایک جمعه", games: 18, price: 1, unit: "تومان", min: 50000 },
+        { name: "لالیگا جمعه", games: 18, price: 1, unit: "تومان", min: 15000 },
+        { name: "جام در جام طلایی جمعه", games: 18, price: 5, unit: "ریال", min: 20000 },
+        { name: "پنگوئن", games: 18, price: 5, unit: "ریال", min: 20000 },
+        { name: "جام در جام", games: 18, price: 5, unit: "ریال", min: 10000 }
+    ]
+};
+
+// === توابع اصلی (بدون تغییر) ===
+function getCardInstanceKey(day, cardName) { 
+    return `card_instance_${day}_${cardName}`; 
+}
+
+function saveCardInstance(day, cardName, imageData) { 
+    const card = FIXED_CARDS[day].find(c => c.name === cardName);
+    if (!card) return;
+    const instance = {
+        ...card,
+        day: day,
+        image: imageData,
+        uploadDate: new Date().toISOString(),
+        coordinates: allCoordinates,
+        cornerPoints: coordinatePoints
+    };
+    localStorage.setItem(getCardInstanceKey(day, cardName), JSON.stringify(instance));
+}
+
+function loadCardInstance(day, cardName) { 
+    const d = localStorage.getItem(getCardInstanceKey(day, cardName)); 
+    return d ? JSON.parse(d) : null; 
+}
+
+function deleteCardInstance(day, cardName) { 
+    localStorage.removeItem(getCardInstanceKey(day, cardName)); 
+}
+
+function getAllCardInstances() {
+    const cards = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('card_instance_')) {
+            const data = JSON.parse(localStorage.getItem(key));
+            if (!cards[data.day]) cards[data.day] = [];
+            cards[data.day].push(data);
+        }
+    }
+    return cards;
+}
+
+function goToDays() {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-days').classList.add('active');
+    document.getElementById('header-title').textContent = '⚽ پیش‌بینی زنده بازی‌های فوتبال ⚽';
+}
+
+function goBackToCards() {
+    document.getElementById('page-matches').classList.remove('active');
+    document.getElementById('page-preview').classList.remove('active');
+    document.getElementById('page-cards').classList.add('active');
+}
+
+function goToCards(day) {
+    currentDay = day;
+    document.getElementById('header-title').textContent = 'کارت‌های روز ' + dayNames[day];
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-cards').classList.add('active');
+    const container = document.getElementById('cards-container');
+    container.innerHTML = '';
+    const allCards = getAllCardInstances();
+    const dayCards = allCards[day] || [];
+    if (dayCards.length === 0) {
+        container.innerHTML = '<div class="alert-box alert-orange">هنوز کارتی برای این روز آپلود نشده است.</div>';
+        return;
+    }
+    dayCards.forEach(card => {
+        const div = document.createElement('div');
+        div.className = 'card-item';
+        div.onclick = () => goToMatches(card);
+        div.innerHTML = `
+            ${card.image ? `<img src="${card.image}" class="card-thumbnail">` : ''}
+            <div class="card-header">
+                <div class="card-name">${card.name}</div>
+                <div class="card-type">${card.games} بازی</div>
+            </div>
+            <div style="font-size: 12px; color: #059669; margin-top: 8px;">✅ آماده برای انتخاب</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function goToMatches(card) {
+    currentCard = card;
+    selections = Array(card.games).fill(0).map(() => new Set());
+    if (!card.image || !card.coordinates) { 
+        alert('⚠️ این کارت ناقص است!'); 
+        return; 
+    }
+    document.getElementById('min-alert').textContent = '⚠️ حداقل مبلغ: ' + card.min.toLocaleString('en-US') + ' تومان';
+    document.getElementById('match-card-image').src = card.image;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-matches').classList.add('active');
+    const container = document.getElementById('matches-container');
+    container.innerHTML = '';
+    for (let i = 0; i < card.games; i++) {
+        const div = document.createElement('div');
+        div.className = 'match-selector';
+        div.innerHTML = `
+            <div class="match-row">
+                <div class="match-num">${i + 1}</div>
+                <div class="options-group">
+                    <div class="circle-option user-selection" data-m="${i}" data-o="1">1</div>
+                    <div class="circle-option user-selection" data-m="${i}" data-o="X">X</div>
+                    <div class="circle-option user-selection" data-m="${i}" data-o="2">2</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+    updateCalc();
+}
+
+document.addEventListener('click', e => {
+    if (e.target.classList.contains('user-selection')) {
+        const m = parseInt(e.target.dataset.m), o = e.target.dataset.o;
+        if (selections[m].has(o)) { 
+            selections[m].delete(o); 
+            e.target.classList.remove('selected'); 
+        } else { 
+            selections[m].add(o); 
+            e.target.classList.add('selected'); 
+        }
+        updateCalc();
+    }
+});
+
+function updateCalc() {
+    let c3 = 0, c2 = 0, c1 = 0;
+    selections.forEach(s => { 
+        if (s.size === 3) c3++; 
+        else if (s.size === 2) c2++; 
+        else if (s.size === 1) c1++; 
+    });
+    document.getElementById('s3').textContent = c3; 
+    document.getElementById('s2').textContent = c2; 
+    document.getElementById('s1').textContent = c1;
+    const total = Math.pow(3, c3) * Math.pow(2, c2);
+    let unitPrice = currentCard.price; 
+    if (currentCard.unit === 'ریال') unitPrice = currentCard.price / 10;
+    const price = total * unitPrice;
+    let discountRate = currentCard.discount || 25;
+    if (currentCard.name === "ماتادور" || currentCard.name === "ماتادور چهارشنبه") {
+        discountRate = 20;
+    }
+    const dis = price * (discountRate / 100);
+    const fin = price - dis;
+    document.getElementById('pb').textContent = price.toLocaleString('en-US') + ' تومان';
+    document.getElementById('pd').textContent = dis.toLocaleString('en-US') + ' تومان (' + discountRate + '%)';
+    document.getElementById('pf').textContent = fin.toLocaleString('en-US') + ' تومان';
+    document.getElementById('err').classList.toggle('hidden', fin === 0 || fin >= currentCard.min);
+}
+
+function validateSelections() {
+    const missing = [];
+    selections.forEach((s, i) => {
+        if (s.size === 0) missing.push(i + 1);
+    });
+    if (missing.length > 0) {
+        alert(`⚠️ بازی‌های ${missing.join(', ')} علامت‌گذاری نشده‌اند!`);
+        return false;
+    }
+    return true;
+}
+
+function showCardPreview() {
+    if (!validateSelections()) return;
+    const total = Math.pow(3, selections.filter(s => s.size === 3).length) * Math.pow(2, selections.filter(s => s.size === 2).length);
+    let unitPrice = currentCard.price; 
+    if (currentCard.unit === 'ریال') unitPrice = currentCard.price / 10;
+    const price = total * unitPrice;
+    let discountRate = currentCard.discount || 25;
+    if (currentCard.name === "ماتادور" || currentCard.name === "ماتادور چهارشنبه") {
+        discountRate = 20;
+    }
+    const fin = price - (price * (discountRate / 100));
+    if (fin < currentCard.min) {
+        alert('❌ مبلغ نهایی کمتر از حداقل است!');
+        return;
+    }
+    stampApplied = false;
+    priceApplied = false;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-preview').classList.add('active');
+    const img = document.getElementById('preview-final-image');
+    img.src = currentCard.image;
+    document.getElementById('stamp-overlay').classList.add('hidden');
+    document.getElementById('customer-code-overlay').classList.add('hidden');
+    document.getElementById('price-overlay').classList.add('hidden');
+    document.getElementById('stamp-btn').classList.remove('hidden');
+    document.getElementById('price-btn').classList.add('hidden');
+    document.getElementById('confirm-section').classList.add('hidden');
+    img.onload = () => {
+        drawMarksOnCard();
+    };
+}
+
+function drawMarksOnCard() {
+    const img = document.getElementById('preview-final-image');
+    const canvas = document.getElementById('marks-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.style.width = '100%';
+    canvas.style.height = 'auto';
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!currentCard.coordinates) return;
+    selections.forEach((sel, gameIndex) => {
+        sel.forEach(option => {
+            let coordIndex;
+            if (option === '1') coordIndex = gameIndex * 3;
+            else if (option === 'X') coordIndex = gameIndex * 3 + 1;
+            else if (option === '2') coordIndex = gameIndex * 3 + 2;
+            if (coordIndex < currentCard.coordinates.length) {
+                const [x, y] = currentCard.coordinates[coordIndex];
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(x - 20, y - 20);
+                ctx.lineTo(x + 20, y + 20);
+                ctx.moveTo(x + 20, y - 20);
+                ctx.lineTo(x - 20, y + 20);
+                ctx.stroke();
+            }
+        });
+    });
+}
+
+function applyStamp() {
+    const customerCode = document.getElementById('customer-code-input').value.trim();
+    const codeOverlay = document.getElementById('customer-code-overlay');
+    if (customerCode) {
+        codeOverlay.innerHTML = `<div class="card-customer-code">${customerCode}</div>`;
+        codeOverlay.classList.remove('hidden');
+    } else {
+        codeOverlay.classList.add('hidden');
+    }
+    document.getElementById('stamp-overlay').classList.remove('hidden');
+    stampApplied = true;
+    document.getElementById('stamp-btn').classList.add('hidden');
+    document.getElementById('price-btn').classList.remove('hidden');
+}
+
+function applyPrice() {
+    const total = Math.pow(3, selections.filter(s => s.size === 3).length) * Math.pow(2, selections.filter(s => s.size === 2).length);
+    let unitPrice = currentCard.price; 
+    if (currentCard.unit === 'ریال') unitPrice = currentCard.price / 10;
+    const price = total * unitPrice;
+    document.getElementById('final-price-display').textContent = price.toLocaleString('en-US');
+    document.getElementById('price-overlay').classList.remove('hidden');
+    priceApplied = true;
+    document.getElementById('price-btn').classList.add('hidden');
+    document.getElementById('confirm-section').classList.remove('hidden');
+}
+
+function closePreview() {
+    document.getElementById('page-preview').classList.remove('active');
+    document.getElementById('page-matches').classList.add('active');
+}
+
+function goBackToEdit() {
+    closePreview();
+}
+
+function captureCard() {
+    return new Promise((resolve, reject) => {
+        const stampTitle = document.querySelector('.card-stamp-title');
+        const customerCodeEl = document.querySelector('.card-customer-code');
+        const originalFont = stampTitle ? (stampTitle.style.fontFamily || getComputedStyle(stampTitle).fontFamily) : '';
+        const originalCodeFont = customerCodeEl ? (customerCodeEl.style.fontFamily || getComputedStyle(customerCodeEl).fontFamily) : '';
+        if (stampTitle) stampTitle.style.fontFamily = "'Tahoma', 'B Nazanin', 'Arial', sans-serif";
+        if (customerCodeEl) customerCodeEl.style.fontFamily = "'Tahoma', 'B Nazanin', 'Arial', sans-serif";
+        const element = document.getElementById('final-card-container');
+        html2canvas(element, { 
+            scale: 2,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            logging: false,
+            letterRendering: true
+        }).then(canvas => {
+            if (stampTitle) stampTitle.style.fontFamily = originalFont;
+            if (customerCodeEl) customerCodeEl.style.fontFamily = originalCodeFont;
+            resolve(canvas.toDataURL('image/png'));
+        }).catch(err => {
+            if (stampTitle) stampTitle.style.fontFamily = originalFont;
+            if (customerCodeEl) customerCodeEl.style.fontFamily = originalCodeFont;
+            reject(err);
+        });
+    });
+}
+
+function sendToTelegram() {
+    if (!stampApplied || !priceApplied) {
+        alert('⚠️ لطفاً ابتدا مهر و مبلغ را اعمال کنید!');
+        return;
+    }
+    document.getElementById('loading').classList.add('show');
+    setTimeout(() => {
+        captureCard()
+            .then(imageData => {
+                const link = document.createElement('a');
+                link.href = imageData;
+                link.download = `toto98_card_${Date.now()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => {
+                    window.open('https://t.me/toto968play', '_blank');
+                    // ✅ پاک‌کردن رمز مشتری و علامت‌های روی کارت
+                    document.getElementById('customer-code-input').value = '';
+                    // ریست selections برای جلوگیری از کشیدن علامت‌ها در آینده
+                    selections = Array(currentCard.games).fill(0).map(() => new Set());
+                    // پاک کردن canvas برای خام کردن کارت
+                    const canvas = document.getElementById('marks-canvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    document.getElementById('loading').classList.remove('show');
+                }, 1000);
+            })
+            .catch(() => {
+                document.getElementById('loading').classList.remove('show');
+                alert('❌ خطا در ایجاد تصویر!');
+            });
+    }, 500);
+}
+
+// === سایر توابع مدیریت (بدون تغییر) ===
+function openAdminLogin() {
+    document.getElementById('admin-section').classList.add('active');
+}
+function adminLogin() {
+    const code = document.getElementById('admin-code').value;
+    if (code === '9561') {
+        closeAdmin();
+        openAdminPanel();
+    } else {
+        document.getElementById('admin-message').textContent = 'کد اشتباه است!';
+    }
+}
+function closeAdmin() {
+    document.getElementById('admin-section').classList.remove('active');
+    document.getElementById('admin-code').value = '';
+    document.getElementById('admin-message').textContent = '';
+}
+function openAdminPanel() {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('admin-panel').classList.remove('hidden');
+    document.getElementById('admin-panel').classList.add('active');
+    const daysContainer = document.getElementById('admin-days');
+    daysContainer.innerHTML = '';
+    Object.keys(dayNames).forEach(day => {
+        const btn = document.createElement('button');
+        btn.className = 'day-btn';
+        btn.textContent = dayNames[day];
+        btn.onclick = () => openAdminCards(day);
+        daysContainer.appendChild(btn);
+    });
+    document.getElementById('admin-cards').innerHTML = '<div class="alert-box alert-blue">لطفاً یک روز را انتخاب کنید.</div>';
+}
+function openAdminCards(day) {
+    currentDay = day;
+    const cardsContainer = document.getElementById('admin-cards');
+    cardsContainer.innerHTML = '';
+    const allCards = getAllCardInstances();
+    const dayCards = allCards[day] || [];
+    if (dayCards.length === 0) {
+        cardsContainer.innerHTML = '<div class="alert-box alert-orange">هنوز کارتی برای این روز آپلود نشده است.</div>';
+        return;
+    }
+    dayCards.forEach(card => {
+        const div = document.createElement('div');
+        div.className = 'card-item';
+        div.innerHTML = `
+            ${card.image ? `<img src="${card.image}" class="card-thumbnail">` : ''}
+            <div class="card-header">
+                <div class="card-name">${card.name}</div>
+                <div class="card-type">${card.games} بازی</div>
+            </div>
+            <button class="delete-btn" onclick="deleteCard('${day}', '${card.name}')">حذف</button>
+        `;
+        cardsContainer.appendChild(div);
+    });
+}
+function deleteCard(day, cardName) {
+    if (confirm(`حذف کارت "${cardName}"؟`)) {
+        deleteCardInstance(day, cardName);
+        alert('✅ حذف شد.');
+        openAdminCards(day);
+    }
+}
+function closeAdminPanel() {
+    document.getElementById('admin-panel').classList.remove('active');
+    document.getElementById('admin-panel').classList.add('hidden');
+    goToDays();
+}
+function showUploadForm() {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('upload-form').classList.add('active');
+    document.getElementById('upload-step-1').style.display = 'block';
+    document.getElementById('upload-step-2').style.display = 'none';
+    document.getElementById('upload-step-3').style.display = 'none';
+    updateCardList();
+}
+function closeUploadForm() {
+    document.getElementById('upload-form').classList.remove('active');
+    document.getElementById('admin-panel').classList.add('active');
+}
+function updateCardList() {
+    const day = document.getElementById('upload-day').value;
+    const select = document.getElementById('upload-name');
+    select.innerHTML = '';
+    FIXED_CARDS[day].forEach(card => {
+        const opt = document.createElement('option');
+        opt.value = card.name;
+        opt.textContent = card.name;
+        select.appendChild(opt);
+    });
+    updateCardInfo();
+}
+function updateCardInfo() {
+    const day = document.getElementById('upload-day').value;
+    const name = document.getElementById('upload-name').value;
+    const card = FIXED_CARDS[day].find(c => c.name === name);
+    if (card) {
+        document.getElementById('card-info').innerHTML = `
+            🔹 تعداد بازی‌ها: ${card.games}<br>
+            🔹 قیمت هر ردیف: ${card.price} ${card.unit}<br>
+            🔹 حداقل مبلغ: ${card.min.toLocaleString('en-US')} تومان<br>
+            🔹 تخفیف پیش‌فرض: 25%<br>
+        `;
+    }
+}
+document.getElementById('upload-name').addEventListener('change', updateCardInfo);
+function goToStep2() {
+    const name = document.getElementById('upload-name').value.trim();
+    if (!name) {
+        alert('⚠️ نام کارت را انتخاب کنید.');
+        return;
+    }
+    document.getElementById('upload-step-1').style.display = 'none';
+    document.getElementById('upload-step-2').style.display = 'block';
+}
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        uploadedImage = e.target.result;
+        document.getElementById('preview-img').src = uploadedImage;
+        document.getElementById('image-preview').style.display = 'block';
+        document.getElementById('go-to-step-3').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+function goToStep3() {
+    if (!uploadedImage) {
+        alert('⚠️ ابتدا تصویر را انتخاب کنید.');
+        return;
+    }
+    document.getElementById('upload-step-2').style.display = 'none';
+    document.getElementById('upload-step-3').style.display = 'block';
+    document.getElementById('coordinate-img').src = uploadedImage;
+    coordinatePoints = [];
+    allCoordinates = [];
+    document.getElementById('coordinate-overlay').innerHTML = '';
+    document.getElementById('coordinate-instruction').textContent = 'لطفاً گوشه بالا-چپ اولین خانه را کلیک کنید';
+}
+function handleCoordinateClick(event) {
+    if (event.target.classList.contains('coordinate-marker')) {
+        const index = parseInt(event.target.dataset.index);
+        coordinatePoints.splice(index, 1);
+        updateCoordinateMarkers();
+        return;
+    }
+    if (coordinatePoints.length >= 4) {
+        alert('⚠️ ۴ نقطه ثبت شده. برای حذف روی هر نقطه کلیک کنید.');
+        return;
+    }
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const img = document.getElementById('coordinate-img');
+    const scaleX = img.naturalWidth / img.width;
+    const scaleY = img.naturalHeight / img.height;
+    coordinatePoints.push([x * scaleX, y * scaleY]);
+    updateCoordinateMarkers();
+}
+function updateCoordinateMarkers() {
+    const overlay = document.getElementById('coordinate-overlay');
+    const img = document.getElementById('coordinate-img');
+    const scaleX = img.naturalWidth / img.width;
+    const scaleY = img.naturalHeight / img.height;
+    overlay.innerHTML = '';
+    coordinatePoints.forEach((point, index) => {
+        const marker = document.createElement('div');
+        marker.className = 'coordinate-marker';
+        marker.style.left = (point[0] / scaleX) + 'px';
+        marker.style.top = (point[1] / scaleY) + 'px';
+        marker.textContent = index + 1;
+        marker.dataset.index = index;
+        overlay.appendChild(marker);
+    });
+    const instructions = [
+        'لطفاً گوشه بالا-راست اولین خانه را کلیک کنید',
+        'لطفاً گوشه پایین-چپ آخرین خانه را کلیک کنید',
+        'لطفاً گوشه پایین-راست آخرین خانه را کلیک کنید',
+        '✅ تمام نقاط ثبت شد!'
+    ];
+    if (coordinatePoints.length > 0 && coordinatePoints.length <= 4) {
+        document.getElementById('coordinate-instruction').textContent = instructions[coordinatePoints.length - 1];
+    }
+    if (coordinatePoints.length === 4) {
+        calculateAllCoordinates();
+        document.getElementById('save-card-btn').style.display = 'block';
+    } else {
+        document.getElementById('save-card-btn').style.display = 'none';
+    }
+}
+function resetCoordinates() {
+    coordinatePoints = [];
+    allCoordinates = [];
+    document.getElementById('coordinate-overlay').innerHTML = '';
+    document.getElementById('coordinate-instruction').textContent = 'لطفاً گوشه بالا-چپ اولین خانه را کلیک کنید';
+    document.getElementById('save-card-btn').style.display = 'none';
+}
+function calculateAllCoordinates() {
+    const day = document.getElementById('upload-day').value;
+    const name = document.getElementById('upload-name').value;
+    const card = FIXED_CARDS[day].find(c => c.name === name);
+    if (!card) return;
+    const games = card.games;
+    const [topLeft, topRight, bottomLeft, bottomRight] = coordinatePoints;
+    allCoordinates = [];
+    for (let row = 0; row < games; row++) {
+        const rowProgress = row / Math.max(1, games - 1);
+        const leftX = topLeft[0] + (bottomLeft[0] - topLeft[0]) * rowProgress;
+        const leftY = topLeft[1] + (bottomLeft[1] - topLeft[1]) * rowProgress;
+        const rightX = topRight[0] + (bottomRight[0] - topRight[0]) * rowProgress;
+        const rightY = topRight[1] + (bottomRight[1] - topRight[1]) * rowProgress;
+        for (let col = 0; col < 3; col++) {
+            const colProgress = col / 2;
+            const x = leftX + (rightX - leftX) * colProgress;
+            const y = leftY + (rightY - leftY) * colProgress;
+            allCoordinates.push([Math.round(x), Math.round(y)]);
+        }
+    }
+}
+function saveNewCard() {
+    const name = document.getElementById('upload-name').value.trim();
+    const day = document.getElementById('upload-day').value;
+    if (!name || !uploadedImage || coordinatePoints.length !== 4) {
+        alert('⚠️ تمام مراحل را تکمیل کنید.');
+        return;
+    }
+    const card = FIXED_CARDS[day].find(c => c.name === name);
+    if (!card) return;
+    const fullCardData = {
+        ...card,
+        coordinates: allCoordinates,
+        cornerPoints: coordinatePoints,
+        day: day,
+        image: uploadedImage,
+        uploadDate: new Date().toISOString(),
+        discount: 25
+    };
+    localStorage.setItem(getCardInstanceKey(day, name), JSON.stringify(fullCardData));
+    alert(`✅ کارت "${name}" ذخیره شد!`);
+    closeUploadForm();
+    openAdminCards(day);
+}
+function autoDeleteOldCards() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    if (currentHour === 12) {
+        const dayIndex = now.getDay();
+        const dayNamesList = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const yesterday = dayNamesList[(dayIndex + 6) % 7];
+        const allCards = getAllCardInstances();
+        const yesterdayCards = allCards[yesterday] || [];
+        yesterdayCards.forEach(card => {
+            deleteCardInstance(yesterday, card.name);
+        });
+        console.log(`✅ کارت‌های روز ${yesterday} حذف شدند.`);
+    }
+}
+setInterval(autoDeleteOldCards, 3600000);
+function updateTime() {
+    const now = new Date();
+    const persianDate = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { 
+        day: 'numeric', month: 'long', year: 'numeric' 
+    }).format(now);
+    const time = new Intl.DateTimeFormat('fa-IR', { 
+        hour: '2-digit', minute: '2-digit', hour12: false 
+    }).format(now);
+    document.getElementById('header-time').textContent = `${persianDate}، ${time}`;
+    const dayNamesList = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
+    const today = dayNamesList[now.getDay()];
+    document.querySelectorAll('.day-btn').forEach(btn => {
+        btn.classList.toggle('current-day', btn.textContent === today);
+    });
+}
+setInterval(updateTime, 1000);
+updateTime();
+autoDeleteOldCards();
+</script>
+</body>
+</html>
