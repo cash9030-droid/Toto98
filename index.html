@@ -26,8 +26,8 @@
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .card-name { font-size: 16px; font-weight: bold; color: #667eea; }
         .card-type { font-size: 13px; font-weight: bold; color: #10b981; }
-        .card-thumbnail { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
-        .card-image-full { width: 100%; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .card-thumbnail { width: 100%; height: auto; max-height: 150px; object-fit: contain; border-radius: 10px; margin-bottom: 10px; }
+        .card-image-full { width: 100%; height: auto; max-height: 400px; object-fit: contain; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: block; margin-left: auto; margin-right: auto; }
         .match-selector { background: white; border-radius: 10px; padding: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .match-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
         .match-row:last-child { border-bottom: none; }
@@ -52,7 +52,7 @@
         .alert-red { background: #fecaca; border: 2px solid #ef4444; color: #991b1b; }
         .alert-blue { background: #dbeafe; border: 2px solid #3b82f6; color: #1e40af; }
         .alert-green { background: #d1fae5; border: 2px solid #10b981; color: #047857; }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 15px; padding: 18px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s; margin-bottom: 10px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 15px; padding: 18px; font-size: 16px; font-weight:  bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s; margin-bottom: 10px; }
         .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 15px; padding: 18px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transition: all 0.3s; margin-bottom: 10px; }
         .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 15px; padding: 18px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); transition: all 0.3s; margin-bottom: 10px; }
         .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 15px; padding: 18px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: all 0.3s; margin-bottom: 10px; }
@@ -73,7 +73,7 @@
         .upload-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: bold; width: 100%; cursor: pointer; margin-bottom: 10px; }
         .file-input { display: none; }
         .preview-container { position: relative; margin: 15px 0; border: 2px dashed #667eea; border-radius: 10px; overflow: hidden; }
-        .preview-image { width: 100%; display: block; }
+        .preview-image { width: 100%; height: auto; max-height: 400px; object-fit: contain; display: block; margin: 0 auto; }
         .coordinate-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
         .coordinate-marker { position: absolute; width: 14px; height: 14px; background: red; border: 2px solid white; border-radius: 50%; transform: translate(-50%, -50%); font-size: 9px; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
         .coordinate-marker:hover { background: #dc2626; transform: translate(-50%, -50%) scale(1.2); }
@@ -83,7 +83,7 @@
         .info-box { background: #dbeafe; border: 2px solid #3b82f6; border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 13px; color: #1e40af; }
         .step-indicator { background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 10px; margin-bottom: 10px; text-align: center; font-size: 14px; font-weight: bold; color: #92400e; }
         .card-final-preview { position: relative; background: white; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
-        .card-final-image { width: 100%; display: block; }
+        .card-final-image { width: 100%; height: auto; max-height: 400px; object-fit: contain; display: block; margin: 0 auto; }
         .card-stamp { 
             position: absolute; top: 20px; left: 20px; 
             background: rgba(0, 0, 0, 0.85); 
@@ -157,10 +157,9 @@
             <button class="day-btn" onclick="goToCards('friday')">جمعه</button>
         </div>
         <button class="admin-btn" onclick="openAdminLogin()">پنل مخصوص مدیریت</button>
-        <button class="btn-success app-download-btn" onclick="openTelegramLink('https://t.me/toto98playgame')">دانلود اپلیکیشن توتو98</button>
         <div class="footer-box">
-            کلیه حقوق متعلق به کانال تلگرامی <a href="#" onclick="openTelegramLink('https://t.me/toto98playgame'); return false;">@toto98playgame</a><br>
-            📞 پشتیبانی: <a href="#" onclick="openTelegramLink('https://t.me/toto968play'); return false;">@toto968play</a>
+            کلیه حقوق متعلق به کانال تلگرامی <a href="https://t.me/toto98playgame">@toto98playgame</a><br>
+            📞 پشتیبانی: <a href="https://t.me/toto968play">@toto968play</a>
         </div>
     </div>
     <div id="page-cards" class="page">
@@ -304,16 +303,6 @@ let coordinatePoints = [];
 let allCoordinates = [];
 let stampApplied = false, priceApplied = false;
 
-// ✅ تابع برای باز کردن لینک‌های تلگرام (مخصوص اپلیکیشن موبایل)
-function openTelegramLink(url) {
-    // برای اپلیکیشن موبایل
-    if (window.location.protocol === 'file:' || navigator.userAgent.match(/Android|iPhone|iPad/i)) {
-        window.location.href = url;
-    } else {
-        window.open(url, '_blank');
-    }
-}
-
 const dayNames = { 
     saturday: 'شنبه', sunday: 'یکشنبه', monday: 'دوشنبه', 
     tuesday: 'سه‌شنبه', wednesday: 'چهارشنبه', thursday: 'پنجشنبه', friday: 'جمعه' 
@@ -391,6 +380,7 @@ const FIXED_CARDS = {
     ]
 };
 
+// === توابع اصلی (بدون تغییر) ===
 function getCardInstanceKey(day, cardName) { 
     return `card_instance_${day}_${cardName}`; 
 }
@@ -681,7 +671,6 @@ function captureCard() {
     });
 }
 
-// ✅ تابع اصلی ارسال به تلگرام (اصلاح شده برای موبایل)
 function sendToTelegram() {
     if (!stampApplied || !priceApplied) {
         alert('⚠️ لطفاً ابتدا مهر و مبلغ را اعمال کنید!');
@@ -691,27 +680,18 @@ function sendToTelegram() {
     setTimeout(() => {
         captureCard()
             .then(imageData => {
-                // دانلود عکس
                 const link = document.createElement('a');
                 link.href = imageData;
                 link.download = `toto98_card_${Date.now()}.png`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                
-                // پاک کردن داده‌ها
-                document.getElementById('customer-code-input').value = '';
-                selections = Array(currentCard.games).fill(0).map(() => new Set());
-                const canvas = document.getElementById('marks-canvas');
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                document.getElementById('loading').classList.remove('show');
-                
-                // باز کردن تلگرام مدیر
                 setTimeout(() => {
-                    openTelegramLink('https://t.me/toto968play');
-                }, 500);
+                    window.open('https://t.me/toto968play', '_blank');
+                    // ✅ پاک‌کردن رمز مشتری و علامت‌های روی کارت
+                    document.getElementById('customer-code-input').value = '';
+                    document.getElementById('loading').classList.remove('show');
+                }, 1000);
             })
             .catch(() => {
                 document.getElementById('loading').classList.remove('show');
@@ -720,6 +700,7 @@ function sendToTelegram() {
     }, 500);
 }
 
+// === سایر توابع مدیریت (بدون تغییر) ===
 function openAdminLogin() {
     document.getElementById('admin-section').classList.add('active');
 }
@@ -999,4 +980,4 @@ updateTime();
 autoDeleteOldCards();
 </script>
 </body>
-    </html>
+                    </html>
